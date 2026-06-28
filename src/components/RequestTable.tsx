@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Eye } from 'lucide-react';
 import { StatusBadge } from './ui/StatusBadge';
 import { fmtDate } from '@/utils/format';
 import { passengerSummary, routeText } from '@/utils/request.utils';
@@ -26,7 +27,8 @@ export function RequestTable({ requests, hrefFor, showAssignment = false }: Requ
             <th className={th}>Travelers</th>
             <th className={th}>Date</th>
             <th className={th}>Status</th>
-            {showAssignment && <th className={`${th} text-right`}>Assignment</th>}
+            {showAssignment && <th className={th}>Assignment</th>}
+            <th className={`${th} text-right`}>View</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
@@ -56,12 +58,24 @@ export function RequestTable({ requests, hrefFor, showAssignment = false }: Requ
                 <StatusBadge status={r.status} />
               </td>
               {showAssignment && (
-                <td className="px-5 py-4 text-right">
+                <td className="px-5 py-4">
                   <span className={`text-xs font-medium ${r.assignedAgentId ? 'text-ink-2' : 'text-amber-dark'}`}>
                     {r.assignedAgentId ? 'Claimed' : 'Unassigned'}
                   </span>
                 </td>
               )}
+              <td className="px-5 py-4">
+                <div className="flex justify-end">
+                  <Link
+                    href={hrefFor(r.id)}
+                    title="View request"
+                    aria-label={`View request ${r.ref}`}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-ink-3 hover:text-brand hover:bg-brand-soft transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Link>
+                </div>
+              </td>
             </tr>
           ))}
         </tbody>

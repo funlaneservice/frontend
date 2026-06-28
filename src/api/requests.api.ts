@@ -42,6 +42,22 @@ export function createRequest(input: CreateRequestInput): Promise<RequestRespons
   return apiFetch<RequestResponse>('/requests', { method: 'POST', body: fd, auth: true });
 }
 
+/** GET /requests — ADMIN: list/search every request, filterable by status, client or agent. */
+export function listAll(
+  params: ListParams & { clientId?: string; assignedAgentId?: string } = {},
+): Promise<RequestListResponse> {
+  return apiFetch<RequestListResponse>('/requests', {
+    auth: true,
+    query: {
+      page: params.page,
+      limit: params.limit,
+      status: params.status,
+      clientId: params.clientId,
+      assignedAgentId: params.assignedAgentId,
+    },
+  });
+}
+
 /** GET /requests/mine — the authenticated client's own requests. */
 export function listMine(params: ListParams = {}): Promise<RequestListResponse> {
   return apiFetch<RequestListResponse>('/requests/mine', {

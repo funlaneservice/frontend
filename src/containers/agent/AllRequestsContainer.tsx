@@ -1,12 +1,13 @@
 'use client';
 
-import { useRequestList } from '@/hooks/useRequestsLive';
+import { useAgentQueue } from '@/hooks/useRequestsLive';
 import { RequestTable } from '@/components/RequestTable';
-import { EmptyState, Loader, PageHeader, Pagination } from '@/components/ui';
+import { EmptyState, Loader, PageHeader } from '@/components/ui';
 import { ClipboardList, AlertTriangle, RefreshCw } from 'lucide-react';
 
 export function AllRequestsContainer() {
-  const { items, pagination, loading, error, params, setParams, refresh } = useRequestList('queue');
+  // Pool + claimed-by-me, merged — so a request stays visible after the agent claims it.
+  const { items, loading, error, refresh } = useAgentQueue();
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
@@ -15,7 +16,7 @@ export function AllRequestsContainer() {
         eyebrow="Pipeline"
         eyebrowIcon={ClipboardList}
         title="All requests"
-        subtitle="A consolidated view of every request in the pipeline."
+        subtitle="The unclaimed pool plus every request assigned to you."
       />
 
       <div className="bg-white rounded-2xl border border-line shadow-card overflow-hidden">
@@ -33,16 +34,6 @@ export function AllRequestsContainer() {
           <EmptyState icon={ClipboardList}>No requests in the pipeline yet.</EmptyState>
         )}
       </div>
-
-      {pagination && (
-        <Pagination
-          page={pagination.page}
-          totalPages={pagination.totalPages}
-          total={pagination.total}
-          unit="request"
-          onPageChange={(p) => setParams({ ...params, page: p })}
-        />
-      )}
     </div>
   );
 }

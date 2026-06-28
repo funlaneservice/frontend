@@ -1,12 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { FunlaneMark } from '@/components/ui/Logo';
-import {
-  Wallet, PlaneTakeoff, CheckCircle2, Ticket, Globe2, Sun, Moon,
-} from 'lucide-react';
-import { CITIES } from '@/lib/constants';
 import { FeaturesSection } from '@/components/landing/FeaturesSection';
 import { TestimonialSection } from '@/components/landing/TestimonialSection';
 import { CTASection } from '@/components/landing/CTASection';
@@ -21,15 +15,12 @@ import { TrustMarque } from '@/components/landing/TrustMarque';
 
 type Theme = 'dark' | 'light';
 
-
-
 export function LandingContainer() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [theme, setTheme] = useState<Theme>('dark');
 
   useEffect(() => {
-    // Honor an explicit prior choice; otherwise fall back to the OS preference.
     const stored = localStorage.getItem('funlane-theme') as Theme | null;
     if (stored === 'dark' || stored === 'light') {
       setTheme(stored);

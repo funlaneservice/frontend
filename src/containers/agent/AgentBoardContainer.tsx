@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useRequestList } from '@/hooks/useRequestsLive';
+import { useAgentQueue } from '@/hooks/useRequestsLive';
 import { fmtDate, initials } from '@/utils/format';
 import { passengerSummary, shortRoute } from '@/utils/request.utils';
 import { StatusBadge, Spinner, PageHeader } from '@/components/ui';
@@ -20,7 +20,7 @@ const COLUMNS: { title: string; color: string; statuses: ApiRequestStatus[] }[] 
 export function AgentBoardContainer() {
   const router = useRouter();
   const name = useAuthStore((s) => s.user?.name) ?? 'Agent';
-  const { items, loading, error, refresh } = useRequestList('queue');
+  const { items, loading, error, refresh } = useAgentQueue();
 
   return (
     <div className="space-y-6 animate-fade-in flex flex-col min-h-[calc(100vh-140px)]">

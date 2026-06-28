@@ -101,4 +101,5 @@ export interface CreateAgentResponse {
 export interface MessageResponse {
   message: string;
   statusCode: number;
+  role: BackendRole;
 }

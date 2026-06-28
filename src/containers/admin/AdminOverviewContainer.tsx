@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Briefcase, ShieldPlus, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Briefcase, ShieldPlus, ArrowRight, ShieldCheck, ClipboardList } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { PageHeader } from '@/components/ui';
 
@@ -18,7 +18,15 @@ export function AdminOverviewContainer() {
         subtitle="Manage your team — onboard agents and grant administrator access."
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <ActionCard
+          href="/admin/requests"
+          icon={ClipboardList}
+          tone="brand"
+          title="Browse all requests"
+          desc="See every travel request across the platform — filter by status and open any one for detail."
+          cta="View requests"
+        />
         <ActionCard
           href="/admin/onboarding"
           icon={Briefcase}
@@ -58,21 +66,23 @@ function ActionCard({
 }: {
   href: string;
   icon: typeof Briefcase;
-  tone: 'blue' | 'ink';
+  tone: 'blue' | 'ink' | 'brand';
   title: string;
   desc: string;
   cta: string;
 }) {
+  const toneClass =
+    tone === 'blue'
+      ? 'bg-blue-soft text-blue'
+      : tone === 'brand'
+        ? 'bg-brand text-white'
+        : 'bg-surface text-ink border border-line';
   return (
     <Link
       href={href}
       className="group bg-white rounded-2xl border border-line p-6 shadow-sm hover:border-ink-3 transition-colors flex flex-col"
     >
-      <span
-        className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${
-          tone === 'blue' ? 'bg-blue-soft text-blue' : 'bg-surface text-ink border border-line'
-        }`}
-      >
+      <span className={`w-11 h-11 rounded-xl flex items-center justify-center mb-4 ${toneClass}`}>
         <Icon className="w-5 h-5" aria-hidden="true" />
       </span>
       <h2 className="font-semibold text-ink">{title}</h2>

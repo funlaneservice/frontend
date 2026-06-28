@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRequestDetail } from '@/hooks/useRequestsLive';
 import { useWallet } from '@/hooks/useWallet';
 import { StatusBadge, ProgressSteps, Timeline, Modal, EmptyState, Loader, Button, ConfirmDialog } from '@/components/ui';
-import { fmtNaira, fmtDate } from '@/utils/format';
+import { fmtNaira, fmtDate, fmtDepartTime } from '@/utils/format';
 import { routeText } from '@/utils/request.utils';
 import type { HistoryEntry, QuoteOptionView } from '@/interface';
 import {
@@ -101,7 +101,7 @@ export function ClientRequestDetailContainer({ id }: { id: string }) {
                       </div>
                       <div>
                         <div className="text-[11px] uppercase tracking-wide text-ink-3 mb-0.5">Departs</div>
-                        <div className="font-semibold text-ink">{o.departureTime}</div>
+                        <div className="font-semibold text-ink">{fmtDepartTime(o.departureTime)}</div>
                       </div>
                       <div className="flex items-center justify-between md:flex-col md:items-end gap-3 border-t md:border-t-0 border-line pt-3 md:pt-0">
                         <div className="text-lg font-bold text-brand">{fmtNaira(o.price)}</div>

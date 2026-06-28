@@ -7,7 +7,7 @@ import { StatusBadge, ProgressSteps, Timeline, Modal, EmptyState, Loader } from 
 import { AIRLINES } from '@/lib/constants';
 import { validateSchema, type FieldErrors } from '@/lib/validation/validate';
 import { quoteOptionSchema } from '@/lib/validation/schemas';
-import { fmtNaira, fmtDate, fmtDateTime, initials } from '@/utils/format';
+import { fmtNaira, fmtDate, fmtDateTime, fmtDepartTime, initials } from '@/utils/format';
 import { routeText } from '@/utils/request.utils';
 import type { AddQuoteOptionPayload, HistoryEntry } from '@/interface';
 import type { RequestVM } from '@/services/requestView';
@@ -57,7 +57,12 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
       return;
     }
     setOptErrors({});
-    const ok = await addOption({ ...draft, price: Number(draft.price) });
+    // The backend expects an ISO datetime; the picker gives local "YYYY-MM-DDTHH:mm".
+    const ok = await addOption({
+      ...draft,
+      price: Number(draft.price),
+      departureTime: new Date(draft.departureTime).toISOString(),
+    });
     if (ok) {
       setDraft(blankDraft());
       setAddOpen(false);
@@ -136,7 +141,7 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
                       <div className="w-10 h-10 rounded-lg bg-white border border-line flex items-center justify-center text-xs font-semibold text-ink-2">{initials(o.airline)}</div>
                       <div>
                         <div className="text-sm font-medium text-ink">{o.airline} <span className="text-[11px] text-ink-3 ml-1">{o.label}</span></div>
-                        <div className="text-xs text-ink-3 mt-0.5">Departs {o.departureTime}{o.details ? ` · ${o.details}` : ''}</div>
+                        <div className="text-xs text-ink-3 mt-0.5">Departs {fmtDepartTime(o.departureTime)}{o.details ? ` · ${o.details}` : ''}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -164,16 +169,25 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
               <span className="inline-flex items-center text-[11px] font-semibold uppercase tracking-wide text-purple bg-purple-soft px-2.5 py-1 rounded-full mb-5">Awaiting client review</span>
               <div className="space-y-2.5">
                 {r.quoteOptions.map((o) => (
-                  <div key={o.id} className="flex items-center justify-between p-4 bg-surface rounded-xl border border-line opacity-80">
+                  <div key={o.id} className="flex items-center justify-between p-4 bg-surface rounded-xl border border-line">
                     <div>
                       <div className="text-sm font-medium text-ink">{o.airline} <span className="text-[11px] text-ink-3 ml-1">{o.label}</span></div>
-                      <div className="text-xs text-ink-3 mt-0.5">Departs {o.departureTime}</div>
+                      <div className="text-xs text-ink-3 mt-0.5">Departs {fmtDepartTime(o.departureTime)}</div>
                     </div>
-                    <div className="text-sm font-semibold text-ink">{fmtNaira(o.price)}</div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-sm font-semibold text-ink">{fmtNaira(o.price)}</div>
+                      {r.assignedAgentId && (
+                        <button onClick={() => removeOption(o.id)} disabled={busy} aria-label={`Remove ${o.airline} option`} className="w-8 h-8 rounded-lg flex items-center justify-center text-ink-3 hover:bg-red-soft hover:text-red transition-colors disabled:opacity-50">
+                          <X aria-hidden="true" className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-ink-3 border-t border-line pt-5 mt-5">Pending the client&apos;s selection on their dashboard.</p>
+              <p className="text-sm text-ink-3 border-t border-line pt-5 mt-5">
+                Pending the client&apos;s selection. You can still remove an option while they review — the client may also send it back for revisions.
+              </p>
             </section>
           )}
 
@@ -292,8 +306,8 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="opt-depart" className={modalLabelClass}>Departure time</label>
-              <input id="opt-depart" className={modalFieldClass} value={draft.departureTime} onChange={(e) => setDraft({ ...draft, departureTime: e.target.value })} placeholder="08:00" />
+              <label htmlFor="opt-depart" className={modalLabelClass}>Departure date &amp; time</label>
+              <input id="opt-depart" type="datetime-local" className={modalFieldClass} value={draft.departureTime} onChange={(e) => setDraft({ ...draft, departureTime: e.target.value })} />
               {optErrors.departureTime && <p className="mt-1 text-[11px] text-red-dark">{optErrors.departureTime}</p>}
             </div>
             <div>

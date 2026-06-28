@@ -27,6 +27,24 @@ export function fmtDateTime(iso: string): string {
   );
 }
 
+/**
+ * Formats a quote option's departure time. Accepts an ISO datetime (what the
+ * backend expects/returns) and renders it as a friendly date + time; falls
+ * back to the raw value for any legacy free-text entries (e.g. "08:00").
+ */
+export function fmtDepartTime(v?: string | null): string {
+  if (!v) return '—';
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return v;
+  return d.toLocaleString('en-NG', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function initials(name: string): string {
   return name
     .split(' ')

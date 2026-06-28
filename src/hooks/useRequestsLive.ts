@@ -14,8 +14,11 @@ interface ListParams {
   mine?: boolean;
 }
 
-/** Paginated request list — `mine` for clients, `queue` for agents. */
-export function useRequestList(source: 'mine' | 'queue', initial: ListParams = { page: 1, limit: 50 }) {
+/**
+ * Paginated request list — `mine` for clients, `queue` for the agent pool,
+ * `all` for the admin-wide directory (`GET /requests`).
+ */
+export function useRequestList(source: 'mine' | 'queue' | 'all', initial: ListParams = { page: 1, limit: 50 }) {
   const [items, setItems] = useState<RequestVM[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +29,12 @@ export function useRequestList(source: 'mine' | 'queue', initial: ListParams = {
     setLoading(true);
     setError(null);
     try {
-      const res = source === 'mine' ? await requestsApi.listMine(p) : await requestsApi.queue(p);
+      const res =
+        source === 'mine'
+          ? await requestsApi.listMine(p)
+          : source === 'all'
+            ? await requestsApi.listAll(p)
+            : await requestsApi.queue(p);
       setItems(res.requests.map(summaryToVM));
       setPagination(res.pagination);
     } catch (err) {
@@ -41,6 +49,43 @@ export function useRequestList(source: 'mine' | 'queue', initial: ListParams = {
   }, [load, params]);
 
   return { items, pagination, loading, error, params, setParams, refresh: () => load(params) };
+}
+
+/**
+ * The complete agent workspace view: the unclaimed pool **plus** the requests
+ * already assigned to this agent. The `/requests/queue` endpoint only returns
+ * one of these per call (the pool by default, or `mine=true`), so a claimed
+ * request would otherwise vanish from the agent's board. We fetch both and
+ * merge them, de-duplicating by id.
+ */
+export function useAgentQueue(limit = 100) {
+  const [items, setItems] = useState<RequestVM[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [pool, mine] = await Promise.all([
+        requestsApi.queue({ limit }),
+        requestsApi.queue({ limit, mine: true }),
+      ]);
+      const byId = new Map<string, RequestVM>();
+      for (const s of [...pool.requests, ...mine.requests]) byId.set(s.id, summaryToVM(s));
+      setItems([...byId.values()]);
+    } catch (err) {
+      setError(msg(err, 'Could not load the queue. Please try again.'));
+    } finally {
+      setLoading(false);
+    }
+  }, [limit]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  return { items, loading, error, refresh: load };
 }
 
 /** Single request + every state-transition action, shared by client & agent detail. */
