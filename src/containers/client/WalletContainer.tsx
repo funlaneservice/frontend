@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Formik, Form, type FormikHelpers } from 'formik';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useWallet } from '@/hooks/useWallet';
@@ -25,6 +25,11 @@ export function WalletContainer() {
   const { wallet, transactions, loading, error, refresh, topUp } = useWallet();
 
   const [showTopup, setShowTopup] = useState(false);
+
+  // Deep-link from the command palette ("Top up wallet") opens the form directly.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('topup') === '1') setShowTopup(true);
+  }, []);
 
   async function onTopUp(values: { amount: string }, helpers: FormikHelpers<{ amount: string }>) {
     const ok = await topUp(Number(values.amount));

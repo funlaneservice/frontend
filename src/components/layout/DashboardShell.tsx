@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { Plane, CreditCard } from 'lucide-react';
 import type { NavSection } from './navTypes';
 import type { Role } from '@/interface';
 import { Topbar } from './Topbar';
@@ -10,9 +11,10 @@ import { BottomNav } from './BottomNav';
 import { SessionTimeout } from '../security/SessionTimeout';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useHydration } from '@/hooks/useHydration';
+import { useRequestSearch } from '@/hooks/useRequestSearch';
 import { homePathFor } from '@/services/auth.service';
 import { ConciergeAssistant } from '../ui/ConciergeAssistant';
-import { CommandPalette } from '../ui/CommandPalette';
+import { CommandPalette, type Command } from '../ui/CommandPalette';
 import { FunlaneMark } from '../ui/Logo';
 
 interface DashboardShellProps {
@@ -27,6 +29,31 @@ export function DashboardShell({ role, sections, children }: DashboardShellProps
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const searchRequests = useRequestSearch(role);
+
+  // Command-palette quick actions. Client-only for now (agents/admins act from
+  // their boards); navigation for every role comes from `sections` automatically.
+  const quickActions = useMemo<Command[]>(() => {
+    if (role !== 'client') return [];
+    return [
+      {
+        id: 'qa:new-request',
+        label: 'New request',
+        icon: Plane,
+        group: 'Quick actions',
+        keywords: 'create booking flight trip',
+        perform: () => router.push('/client/new'),
+      },
+      {
+        id: 'qa:top-up',
+        label: 'Top up wallet',
+        icon: CreditCard,
+        group: 'Quick actions',
+        keywords: 'add funds money balance pay',
+        perform: () => router.push('/client/wallet?topup=1'),
+      },
+    ];
+  }, [role, router]);
 
   const authorized = Boolean(user) && user?.role === role;
 
@@ -80,7 +107,7 @@ export function DashboardShell({ role, sections, children }: DashboardShellProps
 
       <SessionTimeout />
       <ConciergeAssistant />
-      <CommandPalette sections={sections} />
+      <CommandPalette sections={sections} actions={quickActions} onSearchRequests={searchRequests} />
     </div>
   );
 }
