@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Credentials, PublicUser, RegisterPayload, Role } from '@/interface';
 import { useAuthStore } from '@/store/useAuthStore';
-import { authApi, ApiError } from '@/api';
+import { authApi, settingsApi, ApiError } from '@/api';
 import { homePathFor, loginPathFor, toAuthUser } from '@/services/auth.service';
+import { flagNeedsPhone } from '@/lib/needsPhone';
 import { toast } from 'react-toastify'
 
 /** Staff portals with dedicated login endpoints. */
@@ -57,6 +58,55 @@ export function useAuth() {
       }
       toast.error(e instanceof ApiError ? e.message : 'Something went wrong. Please try again.');
       return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /**
+   * Exchange a Google ID token (the `credential` JWT from Google Identity
+   * Services) for an app session. Mirrors `signIn`'s success path, then
+   * best-effort checks whether the resulting profile has a phone on file —
+   * Google never provides one — and flags it so a completion prompt can show.
+   * Returns `unavailable: true` on a 503 so the caller can hide the button.
+   */
+  async function signInWithGoogle(idToken: string): Promise<{ ok: boolean; unavailable?: boolean }> {
+    setLoading(true);
+    setError(null);
+    try {
+      const { user: publicUser, token } = await authApi.googleLogin({ idToken });
+      const authUser = toAuthUser(publicUser);
+      login(authUser, token);
+
+      try {
+        const profile = await settingsApi.getMyProfile();
+        if (!profile.phone) flagNeedsPhone();
+      } catch {
+        // Best-effort only — if this check fails the phone prompt simply won't show.
+      }
+
+      router.replace(consumeNext() ?? homePathFor(authUser.role));
+      return { ok: true };
+    } catch (err) {
+      const e = err as ApiError;
+      if (e instanceof ApiError && e.status === 503) {
+        toast.error(e.message || 'Google sign-in is temporarily unavailable. Please use your email and password.');
+        return { ok: false, unavailable: true };
+      }
+      if (e instanceof ApiError && e.status === 400) {
+        toast.error(e.message || "Couldn't sign in with this Google account.");
+        return { ok: false };
+      }
+      if (e instanceof ApiError && e.status === 401) {
+        toast.error(e.message || 'Your Google sign-in could not be verified. Please try again.');
+        return { ok: false };
+      }
+      if (e instanceof ApiError && e.status === 403) {
+        toast.error(e.message || 'This account is suspended.');
+        return { ok: false };
+      }
+      toast.error(e instanceof ApiError ? e.message : 'Something went wrong. Please try again.');
+      return { ok: false };
     } finally {
       setLoading(false);
     }
@@ -206,6 +256,7 @@ export function useAuth() {
     loading,
     error,
     signIn,
+    signInWithGoogle,
     signInStaff,
     registerAdmin,
     signOut,

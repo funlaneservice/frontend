@@ -76,6 +76,9 @@ export const updateProfileSchema = yup.object({
   phone,
 });
 
+/** Prompted after a Google sign-in whose account has no phone on file. */
+export const completePhoneSchema = yup.object({ phone });
+
 export const changePasswordSchema = yup.object({
   currentPassword: yup.string().required('Enter your current password.'),
   newPassword: strongPassword,

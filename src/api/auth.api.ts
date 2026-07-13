@@ -7,6 +7,7 @@ import type {
   CreateAdminResponse,
   CreateAgentPayload,
   CreateAgentResponse,
+  GoogleLoginPayload,
   LoginPayload,
   LoginResponse,
   MessageResponse,
@@ -25,6 +26,15 @@ export function register(payload: RegisterPayload): Promise<RegisterResponse> {
 /** POST /auth/login — exchange credentials for the user + JWT. */
 export function login(payload: LoginPayload): Promise<LoginResponse> {
   return apiFetch<LoginResponse>('/auth/login', { method: 'POST', body: payload });
+}
+
+/**
+ * POST /auth/google — exchange a Google ID token for the user + app JWT.
+ * First-time emails auto-create a CLIENT account; an email that already has a
+ * password account is silently linked and logged in. Only ever CLIENT accounts.
+ */
+export function googleLogin(payload: GoogleLoginPayload): Promise<LoginResponse> {
+  return apiFetch<LoginResponse>('/auth/google', { method: 'POST', body: payload });
 }
 
 /** POST /admin/auth/login — staff login; 403s accounts that aren't admins. */
