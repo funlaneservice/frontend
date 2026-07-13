@@ -29,8 +29,8 @@ export function AuthHero({
         <div className="auth-hero">
             <FunlaneLogo tone="light" markClassName="w-10 h-10" />
 
-            <div className="flex flex-col justify-center h-full">
-                <h2 className="text-3xl xl:text-4xl font-bold leading-tight tracking-tight text-white mb-4 max-w-md">
+            <div className="flex-1 flex flex-col justify-end">
+                <h2 className="text-3xl xl:text-4xl font-bold leading-tight tracking-tight text-white mb-4 max-w-md mt-auto">
                     {title}
                 </h2>
 

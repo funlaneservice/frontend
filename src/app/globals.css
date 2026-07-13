@@ -114,51 +114,30 @@
 
   .auth-hero {
     @apply hidden lg:flex flex-col px-16 py-14 text-white relative overflow-hidden;
-    background: linear-gradient(165deg, #1B2942 0%, #0F172A 60%, #0B1220 100%);
+    background: 
+      linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.6) 50%, rgba(15, 23, 42, 0.1) 100%),
+      url('/airline-background.png') center / cover no-repeat;
   }
   /* Keep the hero copy + feature cards above the artwork layer. */
   .auth-hero > * {
     @apply relative z-10;
   }
-  /* Brand illustration anchored bottom-right, faded up into the gradient so
-     it grounds the hero without fighting the headline or cards. */
-  .auth-hero::after {
-    content: '';
-    @apply pointer-events-none absolute right-0 bottom-0 z-0;
-    width: 72%;
-    height: 56%;
-    background: url('/hero-illustration.png') right bottom / contain no-repeat;
-    -webkit-mask-image: linear-gradient(to top, #000 48%, transparent 100%);
-    mask-image: linear-gradient(to top, #000 48%, transparent 100%);
-  }
 
-  /* Mobile brand hero — the desktop .auth-hero is hidden below lg, so small
-     screens get the wordmark + headline overlaid on the brand illustration.
-     A dual gradient scrim keeps the top/bottom dark for legible white text
-     while letting the artwork show through the middle. */
+  /* Mobile brand hero */
   .auth-hero-mobile {
     @apply relative flex lg:hidden overflow-hidden rounded-2xl mb-6 min-h-[180px];
-    background:
-      url('/hero-illustration.png') right -8px center / auto 132% no-repeat,
-      linear-gradient(165deg, #1B2942 0%, #0F172A 60%, #0B1220 100%);
+    background: url('/airline-background.png') center / cover no-repeat;
   }
   .auth-hero-mobile::before {
     content: '';
     @apply absolute inset-0;
-    /* Darken the left (logo + headline) and floor while leaving the right,
-       where the artwork sits, clear so the vehicles read crisply. */
+    /* Darken the bottom (logo + headline) */
     background:
       linear-gradient(
-        90deg,
-        rgba(11, 18, 32, 0.88) 0%,
-        rgba(15, 23, 42, 0.55) 42%,
-        rgba(15, 23, 42, 0.05) 78%,
-        rgba(15, 23, 42, 0) 100%
-      ),
-      linear-gradient(
-        0deg,
-        rgba(11, 18, 32, 0.55) 0%,
-        rgba(15, 23, 42, 0) 45%
+        to top,
+        rgba(15, 23, 42, 0.9) 0%,
+        rgba(15, 23, 42, 0.6) 50%,
+        rgba(15, 23, 42, 0.2) 100%
       );
   }
   .auth-hero-mobile__content {
