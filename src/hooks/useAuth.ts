@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { authApi, settingsApi, ApiError } from '@/api';
 import { homePathFor, loginPathFor, toAuthUser } from '@/services/auth.service';
 import { flagNeedsPhone } from '@/lib/needsPhone';
+import { setToken } from '@/lib/token';
 import { toast } from 'react-toastify'
 
 /** Staff portals with dedicated login endpoints. */
@@ -64,17 +65,20 @@ export function useAuth() {
   }
 
   /**
-   * Exchange a Google ID token (the `credential` JWT from Google Identity
-   * Services) for an app session. Mirrors `signIn`'s success path, then
-   * best-effort checks whether the resulting profile has a phone on file —
-   * Google never provides one — and flags it so a completion prompt can show.
-   * Returns `unavailable: true` on a 503 so the caller can hide the button.
+   * Finishes the redirect-based Google OAuth flow. The backend owns the whole
+   * dance and hands back a JWT via `/auth/google/callback?token=`; this stores
+   * it exactly like a password login (same store, same bearer header), then
+   * best-effort checks whether the profile has a phone on file — Google never
+   * provides one — flagging it so a completion prompt can show.
    */
-  async function signInWithGoogle(idToken: string): Promise<{ ok: boolean; unavailable?: boolean }> {
+  async function completeGoogleSignIn(token: string): Promise<boolean> {
     setLoading(true);
     setError(null);
     try {
-      const { user: publicUser, token } = await authApi.googleLogin({ idToken });
+      // getCurrentUser() reads the bearer token via auth: true, so it must be
+      // stored before we call it. `login()` below re-sets it via the store.
+      setToken(token);
+      const publicUser = await authApi.getCurrentUser();
       const authUser = toAuthUser(publicUser);
       login(authUser, token);
 
@@ -86,27 +90,11 @@ export function useAuth() {
       }
 
       router.replace(consumeNext() ?? homePathFor(authUser.role));
-      return { ok: true };
+      return true;
     } catch (err) {
       const e = err as ApiError;
-      if (e instanceof ApiError && e.status === 503) {
-        toast.error(e.message || 'Google sign-in is temporarily unavailable. Please use your email and password.');
-        return { ok: false, unavailable: true };
-      }
-      if (e instanceof ApiError && e.status === 400) {
-        toast.error(e.message || "Couldn't sign in with this Google account.");
-        return { ok: false };
-      }
-      if (e instanceof ApiError && e.status === 401) {
-        toast.error(e.message || 'Your Google sign-in could not be verified. Please try again.');
-        return { ok: false };
-      }
-      if (e instanceof ApiError && e.status === 403) {
-        toast.error(e.message || 'This account is suspended.');
-        return { ok: false };
-      }
-      toast.error(e instanceof ApiError ? e.message : 'Something went wrong. Please try again.');
-      return { ok: false };
+      toast.error(e instanceof ApiError ? e.message : 'Something went wrong finishing Google sign-in. Please try again.');
+      return false;
     } finally {
       setLoading(false);
     }
@@ -256,7 +244,7 @@ export function useAuth() {
     loading,
     error,
     signIn,
-    signInWithGoogle,
+    completeGoogleSignIn,
     signInStaff,
     registerAdmin,
     signOut,
