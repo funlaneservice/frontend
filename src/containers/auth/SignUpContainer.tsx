@@ -9,7 +9,7 @@ import { IconArrowRight } from '@/components/ui/icons';
 import { User, Mail, Phone, Lock } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { AuthLayout } from '@/components/layout/AuthLayout';
-import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
+import { GoogleAuthLink } from '@/components/auth/GoogleAuthLink';
 import { TextField, CheckboxField } from '@/components/form';
 import { signupSchema } from '@/lib/validation/schemas';
 
@@ -46,7 +46,7 @@ function passwordChecks(password: string) {
 
 export function SignUpContainer() {
   const router = useRouter();
-  const { register, signInWithGoogle } = useAuth();
+  const { register } = useAuth();
 
   async function onSubmit(values: SignUpValues, helpers: FormikHelpers<SignUpValues>) {
     if (passwordChecks(values.password).score < 2) {
@@ -92,7 +92,7 @@ export function SignUpContainer() {
         <span className="absolute bg-card px-3 text-xs text-ink-3">or continue with</span>
       </div>
 
-      <GoogleSignInButton text="signup_with" onCredential={signInWithGoogle} />
+      <GoogleAuthLink label="Sign up with Google" />
 
       <p className="mt-6 text-center text-sm text-ink-3">
         Already have an account?{' '}

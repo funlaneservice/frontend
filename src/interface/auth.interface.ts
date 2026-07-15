@@ -40,17 +40,6 @@ export interface LoginResponse {
 }
 
 /**
- * POST /auth/google — the frontend never talks to Google's backend directly.
- * It only forwards the ID token (JWT) obtained client-side via Google Identity
- * Services; the backend verifies it and returns the same envelope as `/auth/login`.
- * Always resolves to a CLIENT-role account — Google sign-in isn't a path for
- * agent/admin accounts.
- */
-export interface GoogleLoginPayload {
-  idToken: string;
-}
-
-/**
  * Staff portals authenticate against dedicated endpoints that reject the wrong
  * role with a 403. The credential shape is identical to the client login; only
  * the response envelope key differs (`admin` vs `agent`).

@@ -11,7 +11,7 @@ import { homePathFor } from '@/services/auth.service';
 import { IconShield } from '@/components/ui/icons';
 import { Mail, Lock, AlertTriangle } from 'lucide-react';
 import { AuthLayout } from '@/components/layout/AuthLayout';
-import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
+import { GoogleAuthLink } from '@/components/auth/GoogleAuthLink';
 import { TextField, CheckboxField } from '@/components/form';
 import { loginSchema } from '@/lib/validation/schemas';
 import { getRememberedEmail, rememberEmail, forgetEmail } from '@/lib/rememberMe';
@@ -23,7 +23,7 @@ interface LoginValues {
 }
 
 export function LoginContainer() {
-  const { user, signIn, signInWithGoogle, loading, error } = useAuth();
+  const { user, signIn, loading, error } = useAuth();
   const hydrated = useHydration();
   const router = useRouter();
 
@@ -99,7 +99,7 @@ export function LoginContainer() {
         <span className="absolute bg-card px-3 text-xs text-ink-3">or continue with</span>
       </div>
 
-      <GoogleSignInButton text="signin_with" onCredential={signInWithGoogle} />
+      <GoogleAuthLink label="Sign in with Google" />
 
       <p className="mt-6 text-center text-sm text-ink-3">
         Not a member?{' '}

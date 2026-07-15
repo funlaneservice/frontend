@@ -3,6 +3,12 @@
 import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 interface GoogleSignInButtonProps {
@@ -29,7 +35,7 @@ export function GoogleSignInButton({ text, onCredential }: GoogleSignInButtonPro
 
     window.google.accounts.id.initialize({
       client_id: CLIENT_ID,
-      callback: async (response) => {
+      callback: async (response: { credential: string }) => {
         const result = await onCredential(response.credential);
         if (result?.unavailable) setUnavailable(true);
       },
