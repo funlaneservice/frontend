@@ -29,7 +29,20 @@ export function DashboardShell({ role, sections, children }: DashboardShellProps
   const logout = useAuthStore((s) => s.logout);
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const searchRequests = useRequestSearch(role);
+
+  // Restore the persisted desktop sidebar preference after hydration.
+  useEffect(() => {
+    setCollapsed(window.localStorage.getItem('funlane_sidebar_collapsed') === '1');
+  }, []);
+
+  function toggleCollapsed() {
+    setCollapsed((c) => {
+      window.localStorage.setItem('funlane_sidebar_collapsed', c ? '0' : '1');
+      return !c;
+    });
+  }
 
   // Command-palette quick actions. Client-only for now (agents/admins act from
   // their boards); navigation for every role comes from `sections` automatically.
@@ -94,6 +107,8 @@ export function DashboardShell({ role, sections, children }: DashboardShellProps
           sections={sections}
           isOpen={mobileMenuOpen}
           onClose={() => setMobileMenuOpen(false)}
+          collapsed={collapsed}
+          onToggleCollapse={toggleCollapsed}
         />
 
         {/* Main View — the only scrollable region. `min-w-0` stops wide
@@ -104,8 +119,9 @@ export function DashboardShell({ role, sections, children }: DashboardShellProps
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <BottomNav sections={sections} />
+      {/* Mobile Bottom Navigation — extra destinations fold into "More",
+          which opens the full nav drawer. */}
+      <BottomNav sections={sections} onMore={() => setMobileMenuOpen(true)} />
 
       <SessionTimeout />
       <ConciergeAssistant />

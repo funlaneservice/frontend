@@ -33,7 +33,7 @@ export function ClientDashboardContainer() {
         title={name.split(' ')[0]}
         subtitle="Here's an overview of your travel requests and wallet activity."
         actions={
-          <Link href="/client/new" className="inline-flex items-center justify-center gap-2 bg-white text-navy px-5 py-3 rounded-xl font-semibold text-sm hover:bg-brand-soft transition-colors shrink-0">
+          <Link href="/client/new" className="inline-flex items-center justify-center gap-2 bg-white text-navy px-5 py-3 rounded-xl font-semibold text-sm hover:bg-[#E4F1FB] transition-colors shrink-0">
             <Plus aria-hidden="true" className="w-4 h-4" /> New request
           </Link>
         }

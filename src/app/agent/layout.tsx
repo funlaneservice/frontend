@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import type { NavSection } from '@/components/layout/navTypes';
 
-import { FolderKanban, Ticket, ClipboardList, ShieldCheck, Users, Settings } from 'lucide-react';
+import { FolderKanban, Ticket, ClipboardList, Settings } from 'lucide-react';
 
 const SECTIONS: NavSection[] = [
   {
@@ -16,12 +16,8 @@ const SECTIONS: NavSection[] = [
       { label: 'All Requests', icon: ClipboardList, href: '/agent/list' },
     ],
   },
-  {
-    title: 'Governance',
-    items: [
-      { label: 'Security Audit', icon: ShieldCheck, href: '/agent/audit' }
-    ],
-  },
+  // The security audit log is ADMIN-only on the backend, so it lives in the
+  // admin portal (/admin/audit) rather than here.
   {
     title: 'Account',
     items: [{ label: 'Settings', icon: Settings, href: '/agent/settings' }],

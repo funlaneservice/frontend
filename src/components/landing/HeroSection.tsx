@@ -21,7 +21,9 @@ function HeroScene() {
             {/* Orbit rings with traveling planes */}
             <div className="absolute inset-8 rounded-full border border-white/10 animate-spin-slow">
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-[#0A1222] border border-white/15 flex items-center justify-center shadow-lg">
-                    <PlaneTakeoff className="w-4 h-4 text-brand-soft" />
+                    {/* Fixed light blue: this scene is always dark, and the themed
+                        `brand-soft` token flips to a dark navy in dark mode. */}
+                    <PlaneTakeoff className="w-4 h-4 text-[#8AC4EC]" />
                 </span>
             </div>
             <div className="absolute inset-[4.5rem] rounded-full border border-dashed border-white/10 animate-spin-slower" style={{ animationDirection: 'reverse' }}>
@@ -38,7 +40,7 @@ function HeroScene() {
             {/* Floating UI cards */}
             <div className="absolute left-4 top-10 animate-float">
                 <GlassCard>
-                    <span className="w-9 h-9 rounded-lg bg-brand/20 text-brand-soft flex items-center justify-center"><Wallet className="w-4 h-4" /></span>
+                    <span className="w-9 h-9 rounded-lg bg-[#1670B5]/25 text-[#8AC4EC] flex items-center justify-center"><Wallet className="w-4 h-4" /></span>
                     <div>
                         <div className="text-[11px] text-white/60">Available balance</div>
                         <div className="font-bold text-sm text-white">₦2,400,000</div>
@@ -96,7 +98,7 @@ export const HeroSection = ({ isDark }: { isDark: boolean }) => {
                     <div>
                         <Reveal from="up">
                             <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-2 dark:text-white/80 bg-ink/5 dark:bg-white/5 border border-line dark:border-white/10 rounded-full pl-2 pr-3.5 py-1.5">
-                                <span className="inline-flex items-center gap-1 bg-brand/15 dark:bg-brand/20 text-brand dark:text-brand-soft rounded-full px-2 py-0.5">
+                                <span className="inline-flex items-center gap-1 bg-brand/15 dark:bg-brand/20 text-brand rounded-full px-2 py-0.5">
                                     <Sparkles className="w-3 h-3" /> New
                                 </span>
                                 Corporate travel, reimagined
@@ -153,7 +155,7 @@ export const HeroSection = ({ isDark }: { isDark: boolean }) => {
                             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-ink-3 dark:text-white/65">
                                 <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-green" /> NDPA compliant</span>
                                 <span className="inline-flex items-center gap-1.5"><Wallet className="w-4 h-4 text-brand" /> Pre-funded wallet</span>
-                                <span className="inline-flex items-center gap-1.5"><Clock className="w-4 h-4 text-[#C5A059]" /> Real-time tracking</span>
+                                <span className="inline-flex items-center gap-1.5"><Clock className="w-4 h-4 text-[#C5A059] dark:text-[#E5C185]" /> Real-time tracking</span>
                             </div>
                         </Reveal>
                     </div>

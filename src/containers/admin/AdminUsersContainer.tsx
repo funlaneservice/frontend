@@ -3,12 +3,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useUsers } from '@/hooks/useUsers';
+import { usersApi } from '@/api';
 import { fmtDateTime } from '@/utils/format';
+import { downloadCsv, csvFilename } from '@/utils/csv';
+import { toast } from 'react-toastify';
 import { Button, ConfirmDialog, Spinner, PageHeader, DataTable, Pagination } from '@/components/ui';
 import type { AdminUserView, BackendRole, ApiUserStatus } from '@/interface';
 import {
   Search, RefreshCw, Ban, RotateCcw, Trash2, Users as UsersIcon,
-  ShieldCheck, UserCog, UserRound, Eye,
+  ShieldCheck, UserCog, UserRound, Eye, Download,
 } from 'lucide-react';
 
 const ROLE_BADGE: Record<BackendRole, string> = {
@@ -40,6 +43,34 @@ export function AdminUsersContainer() {
   const [search, setSearch] = useState('');
   const [pending, setPending] = useState<{ type: 'delete' | 'suspend'; user: AdminUserView } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  /** Client-side CSV export of every user matching the current filters. */
+  async function exportUsers() {
+    setExporting(true);
+    try {
+      const all: AdminUserView[] = [];
+      for (let page = 1; page <= 50; page++) {
+        const res = await usersApi.listUsers({ ...params, page, limit: 100 });
+        all.push(...res.users);
+        if (page >= res.pagination.totalPages || res.users.length === 0) break;
+      }
+      if (!all.length) {
+        toast.info('No users match the current filters.');
+        return;
+      }
+      downloadCsv(
+        csvFilename('users'),
+        ['Name', 'Email', 'Phone', 'Role', 'Status', 'Email verified', 'Joined'],
+        all.map((u) => [u.name, u.email, u.phone, u.role, u.status, u.emailVerifiedAt ?? 'No', u.createdAt]),
+      );
+      toast.success(`Exported ${all.length} user${all.length === 1 ? '' : 's'}.`);
+    } catch {
+      toast.error('Could not export users. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  }
 
   // Live search: debounce keystrokes and push into the query params. No submit
   // needed — results refresh ~350ms after the user stops typing.
@@ -162,6 +193,9 @@ export function AdminUsersContainer() {
           <option value="ACTIVE">Active</option>
           <option value="SUSPENDED">Suspended</option>
         </select>
+        <Button variant="outline" color="ink" size="lg" leftIcon={Download} loading={exporting} onClick={exportUsers} className="self-start md:self-auto">
+          Export CSV
+        </Button>
       </div>
 
       <DataTable<AdminUserView>

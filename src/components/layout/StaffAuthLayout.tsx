@@ -33,7 +33,9 @@ export function StaffAuthLayout({
     <div className="auth-wrap flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-6">
-          <FunlaneLogo tone="dark" />
+          <Link href="/" aria-label="Funlane home">
+            <FunlaneLogo tone="dark" />
+          </Link>
         </div>
 
         <div className="auth-panel">

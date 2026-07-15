@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { FunlaneLogo, FunlaneMark } from '@/components/ui/Logo';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { openCommandPalette } from '@/components/ui/CommandPalette';
+import { NotificationsBell } from './NotificationsBell';
 
 interface TopbarProps {
   onToggleMenu: () => void;
@@ -72,6 +73,7 @@ export function Topbar({ onToggleMenu, menuOpen = false }: TopbarProps) {
         </div>
 
         <div className="flex items-center gap-1.5">
+          <NotificationsBell />
           <ThemeToggle />
 
           <button

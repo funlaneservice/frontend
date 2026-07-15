@@ -83,12 +83,14 @@ export const STATS = [
 ];
 
 export const FEATURES = [
-  { icon: Wallet, title: 'Pre-funded wallet', desc: 'Top up once and book freely. Funds stay yours until you approve a quote.', tint: 'bg-brand/10 text-brand dark:bg-brand/20 dark:text-brand-soft' },
+  // Note: never use `*-soft` tokens as dark-mode foregrounds — they flip to
+  // dark backgrounds under `.dark`. The base tokens already flip light.
+  { icon: Wallet, title: 'Pre-funded wallet', desc: 'Top up once and book freely. Funds stay yours until you approve a quote.', tint: 'bg-brand/10 text-brand dark:bg-brand/20' },
   { icon: Lock, title: 'Approve-to-lock', desc: 'Money is only locked on approval and captured at ticketing. Zero risk.', tint: 'bg-green/10 text-green-dark dark:bg-green/20 dark:text-green' },
   { icon: MapPin, title: 'Real-time tracking', desc: 'Follow every request from submission to issued ticket, live.', tint: 'bg-[#C5A059]/15 text-[#a07d35] dark:bg-[#C5A059]/20 dark:text-[#E5C185]' },
   { icon: Headphones, title: 'Dedicated agents', desc: 'A real agency team curates options and handles the heavy lifting.', tint: 'bg-[#7C3AED]/10 text-[#7C3AED] dark:bg-[#7C3AED]/20 dark:text-[#C4B5FD]' },
-  { icon: ShieldCheck, title: 'NDPA-grade security', desc: 'Encrypted data and compliant handling of every passenger record.', tint: 'bg-blue/10 text-blue dark:bg-blue/20 dark:text-blue-soft' },
-  { icon: Ticket, title: 'Instant e-tickets', desc: 'Issued tickets land in your dashboard, ready to download.', tint: 'bg-brand/10 text-brand dark:bg-brand/20 dark:text-brand-soft' },
+  { icon: ShieldCheck, title: 'NDPA-grade security', desc: 'Encrypted data and compliant handling of every passenger record.', tint: 'bg-blue/10 text-blue dark:bg-blue/20' },
+  { icon: Ticket, title: 'Instant e-tickets', desc: 'Issued tickets land in your dashboard, ready to download.', tint: 'bg-brand/10 text-brand dark:bg-brand/20' },
 ];
 
 export const STEPS = [

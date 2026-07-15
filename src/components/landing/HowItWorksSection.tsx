@@ -16,7 +16,7 @@ export function HowItWorksSection() {
                     {STEPS.map((s, i) => (
                         <Reveal key={s.title} delay={i * 120} className="relative text-center">
                             <div className="relative z-10 mx-auto w-14 h-14 rounded-2xl bg-white dark:bg-[#0A1222] border border-line dark:border-white/10 flex items-center justify-center shadow-sm">
-                                <s.icon className="w-6 h-6 text-brand dark:text-brand-soft" />
+                                <s.icon className="w-6 h-6 text-brand" />
                                 <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-brand text-white text-[11px] font-bold flex items-center justify-center">{i + 1}</span>
                             </div>
                             <h3 className="mt-5 font-semibold text-ink dark:text-white">{s.title}</h3>

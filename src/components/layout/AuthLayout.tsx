@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import Link from 'next/link';
 import { AuthHero } from '../AuthHero';
 import { FunlaneLogo } from '@/components/ui/Logo';
 
@@ -28,7 +29,9 @@ export function AuthLayout({
                             full-height AuthHero takes over. */}
                         <div className="auth-hero-mobile">
                             <div className="auth-hero-mobile__content">
-                                <FunlaneLogo tone="light" markClassName="w-9 h-9" />
+                                <Link href="/" aria-label="Funlane home">
+                                    <FunlaneLogo tone="light" markClassName="w-9 h-9" />
+                                </Link>
                                 <div>
                                     <h2 className="text-xl font-bold leading-tight text-white">
                                         {title}

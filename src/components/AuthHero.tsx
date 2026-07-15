@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { FunlaneLogo } from '@/components/ui/Logo';
 import { Shield, MapPin } from 'lucide-react';
 
@@ -27,7 +28,9 @@ export function AuthHero({
 }: AuthHeroProps) {
     return (
         <div className="auth-hero">
-            <FunlaneLogo tone="light" markClassName="w-10 h-10" />
+            <Link href="/" aria-label="Funlane home" className="self-start">
+                <FunlaneLogo tone="light" markClassName="w-10 h-10" />
+            </Link>
 
             <div className="flex-1 flex flex-col justify-end">
                 <h2 className="text-3xl xl:text-4xl font-bold leading-tight tracking-tight text-white mb-4 max-w-md mt-auto">

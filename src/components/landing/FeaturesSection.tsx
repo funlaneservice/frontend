@@ -5,7 +5,7 @@ export const FeaturesSection = () => {
     return (
         < section id="features" className="max-w-7xl mx-auto px-5 sm:px-8 py-16 sm:py-24" >
             <Reveal className="max-w-2xl">
-                <span className="text-xs font-semibold uppercase tracking-wider text-brand dark:text-brand-soft">Why Funlane</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-brand">Why Funlane</span>
                 <h2 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-ink dark:text-white">Everything a travel desk needs, in one place.</h2>
                 <p className="mt-4 text-ink-2 dark:text-white/75 leading-relaxed">
                     From the first request to the issued ticket, every step is transparent, secure and engineered to keep your funds safe.

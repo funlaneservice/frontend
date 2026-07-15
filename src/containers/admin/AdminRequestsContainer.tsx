@@ -1,13 +1,17 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRequestList } from '@/hooks/useRequestsLive';
 import { useAgentDirectory } from '@/hooks/useAgentDirectory';
+import { requestsApi } from '@/api';
 import { RequestTable } from '@/components/RequestTable';
 import { Button, Loader, PageHeader, Pagination } from '@/components/ui';
-import { STATUS_META } from '@/services/requestView';
+import { STATUS_META, summaryToVM, refOf } from '@/services/requestView';
+import { downloadCsv, csvFilename } from '@/utils/csv';
+import { toast } from 'react-toastify';
 import type { ApiRequestStatus } from '@/interface';
-import { ClipboardList, AlertTriangle, RefreshCw, Inbox, Plus } from 'lucide-react';
+import { ClipboardList, AlertTriangle, RefreshCw, Inbox, Plus, Download } from 'lucide-react';
 
 const STATUS_OPTIONS: ApiRequestStatus[] = [
   'PENDING', 'OPTIONS_SENT', 'APPROVED_LOCKED', 'ISSUED', 'COMPLETED', 'CANCELLED',
@@ -16,9 +20,41 @@ const STATUS_OPTIONS: ApiRequestStatus[] = [
 export function AdminRequestsContainer() {
   const { items, pagination, loading, error, params, setParams, refresh } = useRequestList('all', { page: 1, limit: 20 });
   const { agentName } = useAgentDirectory();
+  const [exporting, setExporting] = useState(false);
 
   function setStatus(status: string) {
     setParams({ ...params, page: 1, status: (status || undefined) as ApiRequestStatus | undefined });
+  }
+
+  /** Client-side CSV export of every request matching the current filter. */
+  async function exportRequests() {
+    setExporting(true);
+    try {
+      const all = [];
+      for (let page = 1; page <= 50; page++) {
+        const res = await requestsApi.listAll({ status: params.status, page, limit: 100 });
+        all.push(...res.requests.map(summaryToVM));
+        if (page >= res.pagination.totalPages || res.requests.length === 0) break;
+      }
+      if (!all.length) {
+        toast.info('No requests match the current filter.');
+        return;
+      }
+      downloadCsv(
+        csvFilename('requests'),
+        ['Reference', 'Origin', 'Destination', 'Trip type', 'Departure', 'Return', 'Cabin', 'Status', 'Passengers', 'Assigned agent', 'Created'],
+        all.map((r) => [
+          refOf(r.id), r.origin, r.destination, r.tripType === 'round' ? 'Round trip' : 'One way',
+          r.departureDate, r.returnDate ?? '', r.budgetLabel, STATUS_META[r.status]?.label ?? r.status,
+          r.passengerCount, agentName(r.assignedAgentId) ?? 'Unassigned', r.createdAt,
+        ]),
+      );
+      toast.success(`Exported ${all.length} request${all.length === 1 ? '' : 's'}.`);
+    } catch {
+      toast.error('Could not export requests. Please try again.');
+    } finally {
+      setExporting(false);
+    }
   }
 
   return (
@@ -43,9 +79,19 @@ export function AdminRequestsContainer() {
             >
               Refresh
             </Button>
+            <Button
+              variant="outline"
+              color="ink"
+              leftIcon={Download}
+              loading={exporting}
+              onClick={exportRequests}
+              className="!border-white/25 !text-white hover:!bg-white/10 self-start"
+            >
+              Export CSV
+            </Button>
             <Link
               href="/admin/new"
-              className="inline-flex items-center justify-center gap-2 bg-white text-navy px-5 py-3 rounded-xl font-semibold text-sm hover:bg-brand-soft transition-colors self-start"
+              className="inline-flex items-center justify-center gap-2 bg-white text-navy px-5 py-3 rounded-xl font-semibold text-sm hover:bg-[#E4F1FB] transition-colors self-start"
             >
               <Plus aria-hidden="true" className="w-4 h-4" /> New request
             </Link>

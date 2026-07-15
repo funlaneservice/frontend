@@ -7,7 +7,7 @@ export function PortalSection() {
     return (
         < section id="portals" className="max-w-7xl mx-auto px-5 sm:px-8 py-16 sm:py-24" >
             <Reveal className="text-center max-w-2xl mx-auto">
-                <span className="text-xs font-semibold uppercase tracking-wider text-brand dark:text-brand-soft">Choose your access</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-brand">Choose your access</span>
                 <h2 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-ink dark:text-white">Two doors, one platform.</h2>
                 <p className="mt-4 text-ink-2 dark:text-white/75">Book and manage trips as a client, or process the queue as an agency agent.</p>
             </Reveal>
@@ -18,7 +18,7 @@ export function PortalSection() {
                     <div className="group relative h-full rounded-3xl border border-brand/20 dark:border-white/10 bg-gradient-to-br from-brand/10 via-brand/5 to-transparent p-8 sm:p-10 overflow-hidden">
                         <div aria-hidden="true" className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-brand/20 blur-3xl group-hover:scale-125 transition-transform duration-500" />
                         <div className="relative">
-                            <span className="inline-flex w-12 h-12 rounded-xl bg-brand/15 dark:bg-brand/20 text-brand dark:text-brand-soft items-center justify-center"><Users className="w-6 h-6" /></span>
+                            <span className="inline-flex w-12 h-12 rounded-xl bg-brand/15 dark:bg-brand/20 text-brand items-center justify-center"><Users className="w-6 h-6" /></span>
                             <h3 className="mt-5 text-2xl font-bold text-ink dark:text-white">For clients</h3>
                             <p className="mt-2 text-ink-2 dark:text-white/70 leading-relaxed">
                                 Submit travel requests, review curated quotes, approve with one tap and track everything from a single dashboard.
