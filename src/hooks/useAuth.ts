@@ -99,7 +99,7 @@ export function useAuth() {
       const authUser = toAuthUser(publicUser);
 
       // Same role gate as the password path — Google sign-in is client-only.
-      if (!gateClientPortal(authUser.role)) return { ok: false };
+      if (!gateClientPortal(authUser.role)) return false;
 
       login(authUser, token);
 
