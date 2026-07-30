@@ -4,4 +4,5 @@ export * as walletApi from './wallet.api';
 export * as usersApi from './users.api';
 export * as settingsApi from './settings.api';
 export * as auditApi from './audit.api';
+export * as legalApi from './legal.api';
 export { ApiError, type FieldErrors } from './client';

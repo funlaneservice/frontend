@@ -1,6 +1,6 @@
 import { SettingsContainer } from '@/containers/settings/SettingsContainer';
-import { PortalThemeSettings } from '@/containers/settings/PortalThemeSettings';
+import { AdminLegalSettings } from '@/containers/settings/AdminLegalSettings';
 
 export default function AdminSettingsPage() {
-  return <SettingsContainer extraSections={<PortalThemeSettings />} />;
+  return <SettingsContainer extraSections={<AdminLegalSettings />} />;
 }

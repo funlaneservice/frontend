@@ -6,3 +6,4 @@ export * from './portal.interface';
 export * from './api.interface';
 export * from './settings.interface';
 export * from './notification.interface';
+export * from './legal.interface';

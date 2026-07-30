@@ -22,11 +22,9 @@ type NavBarProps = {
   scrolled: boolean;
   setMenuOpen: Dispatch<SetStateAction<boolean>>;
   toggleTheme: () => void;
-  /** True when an admin-enforced org theme is active — hides the toggle. */
-  themeLocked?: boolean;
 };
 
-export const NavBar = ({ isDark, menuOpen, scrolled, setMenuOpen, toggleTheme, themeLocked = false }: NavBarProps) => {
+export const NavBar = ({ isDark, menuOpen, scrolled, setMenuOpen, toggleTheme }: NavBarProps) => {
     return (
         <header
             className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled
@@ -48,7 +46,7 @@ export const NavBar = ({ isDark, menuOpen, scrolled, setMenuOpen, toggleTheme, t
                 </div>
 
                 <div className="hidden lg:flex items-center gap-3">
-                    {!themeLocked && <ThemeToggle isDark={isDark} onClick={toggleTheme} />}
+                    <ThemeToggle isDark={isDark} onClick={toggleTheme} />
                     <Link href="/agent/login" className="text-[13px] font-semibold text-ink-3 dark:text-white/60 hover:text-ink dark:hover:text-white transition-colors ml-1">
                         Agent portal
                     </Link>
@@ -65,7 +63,7 @@ export const NavBar = ({ isDark, menuOpen, scrolled, setMenuOpen, toggleTheme, t
                 </div>
 
                 <div className="lg:hidden flex items-center gap-2">
-                    {!themeLocked && <ThemeToggle isDark={isDark} onClick={toggleTheme} />}
+                    <ThemeToggle isDark={isDark} onClick={toggleTheme} />
                     <button
                         onClick={() => setMenuOpen((v) => !v)}
                         className="w-9 h-9 flex items-center justify-center rounded-full border border-line dark:border-white/15 text-ink dark:text-white hover:bg-surface dark:hover:bg-white/10 transition-colors"

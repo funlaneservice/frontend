@@ -126,14 +126,14 @@ export function StaffLoginContainer({ portal }: { portal: StaffPortal }) {
         </a>
       </p>
 
-      {portal === 'admin' && (
+      {/* {portal === 'admin' && (
         <p className="mt-2 text-center text-sm text-ink-3">
           First-time setup?{' '}
           <a href="/admin/register" className="text-ink font-semibold hover:underline">
             Create an admin account
           </a>
         </p>
-      )}
+      )} */}
 
       <div className="relative flex items-center justify-center my-5">
         <div className="w-full h-px bg-line" />

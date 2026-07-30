@@ -7,3 +7,4 @@ export * from './useHydration';
 export * from './useCountryData';
 export * from './useAgentDirectory';
 export * from './useNotifications';
+export * from './useLegalDocument';

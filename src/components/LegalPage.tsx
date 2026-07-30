@@ -8,11 +8,9 @@ import { FunlaneLogo } from '@/components/ui/Logo';
  */
 export function LegalPage({
   title,
-  updated,
   children,
 }: {
   title: string;
-  updated: string;
   children: React.ReactNode;
 }) {
   return (
@@ -30,9 +28,8 @@ export function LegalPage({
 
       <main className="max-w-3xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-ink">{title}</h1>
-        <p className="mt-2 text-sm text-ink-3">Last updated: {updated}</p>
 
-        <article className="mt-8 space-y-8">{children}</article>
+        <article className="mt-6 space-y-8">{children}</article>
       </main>
     </div>
   );
