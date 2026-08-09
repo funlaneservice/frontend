@@ -8,10 +8,11 @@ import { requestsApi, usersApi, ApiError } from '@/api';
 import { useAuthStore } from '@/store/useAuthStore';
 import { OTHER_AIRLINE } from '@/lib/constants';
 import { AIRLINE_PREFERENCE_OPTIONS } from '@/lib/airlineOptions';
-import { BUDGET_TIERS } from '@/services/requestView';
+import { CABIN_CLASS_OPTIONS, CABIN_CLASS_BY_LABEL } from '@/lib/cabinClassOptions';
 import { newRequestSchema } from '@/lib/validation/schemas';
 import { useCityOptions, useNationalityOptions } from '@/hooks/useCountryData';
-import type { AdminUserView, ApiBudgetTier } from '@/interface';
+import { minorAdvisory } from '@/utils/age';
+import type { AdminUserView } from '@/interface';
 import { toast } from 'react-toastify';
 import { PageHeader } from '@/components/ui';
 import { TextField, SelectField, DateField, FileField, SegmentedField, ComboboxField, type ComboOption } from '@/components/form';
@@ -26,7 +27,11 @@ import {
   User,
   BookUser,
   Globe,
+  AlertTriangle,
 } from 'lucide-react';
+
+/** Nobody can be born in the future — caps the date-of-birth picker. */
+const TODAY_ISO = new Date().toISOString().slice(0, 10);
 
 interface PassengerValues {
   fullName: string;
@@ -61,12 +66,6 @@ const TIME_OPTIONS: ComboOption[] = [
   { value: 'Evening', label: 'Evening', description: 'After 6PM' },
 ];
 
-/** Combobox shows the friendly label; handleSubmit resolves it back to the API's cabin-class enum. */
-const BUDGET_OPTIONS: ComboOption[] = BUDGET_TIERS.map((t) => ({ value: t.label, label: t.label }));
-const BUDGET_TIER_BY_LABEL: Record<string, ApiBudgetTier> = Object.fromEntries(
-  BUDGET_TIERS.map((t): [string, ApiBudgetTier] => [t.label, t.value]),
-);
-
 const emptyPassenger = (): PassengerValues => ({
   fullName: '',
   passportNumber: '',
@@ -86,7 +85,7 @@ const initialValues: RequestFormValues = {
   preferredAirline: 'No preference',
   preferredAirlineOther: '',
   preferredTime: 'Any time',
-  budgetTier: BUDGET_OPTIONS[0]?.value ?? 'Economy',
+  budgetTier: CABIN_CLASS_OPTIONS[0]?.value ?? 'Economy',
   passengers: [emptyPassenger()],
 };
 
@@ -133,7 +132,7 @@ export function NewRequestContainer({ redirectTo = '/client/requests' }: NewRequ
           : values.preferredAirline;
 
     // The combobox shows the friendly label ("Economy"); resolve back to the API enum.
-    const budgetTier = BUDGET_TIER_BY_LABEL[values.budgetTier] ?? 'ECONOMY';
+    const budgetTier = CABIN_CLASS_BY_LABEL[values.budgetTier] ?? 'ECONOMY';
 
     try {
       const { request } = await requestsApi.createRequest({
@@ -232,7 +231,7 @@ export function NewRequestContainer({ redirectTo = '/client/requests' }: NewRequ
                   label="Cabin class"
                   placeholder="Search cabin class"
                   icon={Armchair}
-                  options={BUDGET_OPTIONS}
+                  options={CABIN_CLASS_OPTIONS}
                   strict
                 />
               </div>
@@ -265,40 +264,49 @@ export function NewRequestContainer({ redirectTo = '/client/requests' }: NewRequ
                   }
                 >
                   <div className="space-y-3">
-                    {values.passengers.map((_, i) => (
-                      <div key={i} className="p-4 bg-surface border border-line rounded-xl relative animate-fade-in">
-                        {values.passengers.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => remove(i)}
-                            aria-label={`Remove passenger ${i + 1}`}
-                            className="absolute top-3 right-3 w-7 h-7 bg-card text-red border border-line rounded-lg flex items-center justify-center hover:bg-red-soft hover:border-red/30 transition-colors"
-                          >
-                            <X aria-hidden="true" className="w-4 h-4" />
-                          </button>
-                        )}
-                        <div className="grid sm:grid-cols-2 gap-4 pr-8">
-                          <TextField name={`passengers.${i}.fullName`} label="Full name" placeholder="Jane Doe" icon={User} />
-                          <TextField name={`passengers.${i}.passportNumber`} label="Passport number" placeholder="A00000000" icon={BookUser} />
-                          <ComboboxField
-                            name={`passengers.${i}.nationality`}
-                            label="Nationality"
-                            placeholder="Search nationality"
-                            icon={Globe}
-                            options={nationalityOptions}
-                            strict
-                          />
-                          <DateField name={`passengers.${i}.dateOfBirth`} label="Date of birth" />
-                          <DateField name={`passengers.${i}.passportExpiry`} label="Passport expiry" />
-                          <FileField
-                            name={`passengers.${i}.file`}
-                            label="Passport scan"
-                            accept="image/jpeg,image/png,application/pdf"
-                            placeholder="Upload JPEG/PNG/PDF"
-                          />
+                    {values.passengers.map((p, i) => {
+                      const advisory = minorAdvisory(p.dateOfBirth);
+                      return (
+                        <div key={i} className="p-4 bg-surface border border-line rounded-xl relative animate-fade-in">
+                          {values.passengers.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => remove(i)}
+                              aria-label={`Remove passenger ${i + 1}`}
+                              className="absolute top-3 right-3 w-7 h-7 bg-card text-red border border-line rounded-lg flex items-center justify-center hover:bg-red-soft hover:border-red/30 transition-colors"
+                            >
+                              <X aria-hidden="true" className="w-4 h-4" />
+                            </button>
+                          )}
+                          <div className="grid sm:grid-cols-2 gap-4 pr-8">
+                            <TextField name={`passengers.${i}.fullName`} label="Full name" placeholder="Jane Doe" icon={User} />
+                            <TextField name={`passengers.${i}.passportNumber`} label="Passport number" placeholder="A00000000" icon={BookUser} />
+                            <ComboboxField
+                              name={`passengers.${i}.nationality`}
+                              label="Nationality"
+                              placeholder="Search nationality"
+                              icon={Globe}
+                              options={nationalityOptions}
+                              strict
+                            />
+                            <DateField name={`passengers.${i}.dateOfBirth`} label="Date of birth" max={TODAY_ISO} />
+                            <DateField name={`passengers.${i}.passportExpiry`} label="Passport expiry" />
+                            <FileField
+                              name={`passengers.${i}.file`}
+                              label="Passport scan"
+                              accept="image/jpeg,image/png,application/pdf"
+                              placeholder="Upload JPEG/PNG/PDF"
+                            />
+                          </div>
+                          {advisory && (
+                            <div className="mt-3 pr-8 flex items-start gap-2 text-xs text-amber-dark bg-amber-soft px-3 py-2.5 rounded-lg animate-fade-in">
+                              <AlertTriangle aria-hidden="true" className="w-4 h-4 shrink-0 mt-0.5" />
+                              <span>{advisory}</span>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </Section>
               )}

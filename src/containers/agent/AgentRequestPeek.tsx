@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { Drawer, StatusBadge, ProgressSteps, Skeleton } from '@/components/ui';
+import { MinorBadge } from '@/components/MinorBadge';
 import { useRequestDetail } from '@/hooks/useRequestsLive';
 import { routeText } from '@/utils/request.utils';
-import { fmtNaira, fmtDate, fmtDepartTime } from '@/utils/format';
+import { fmtNaira, fmtDate, fmtDepartTime, fmtOptionMeta } from '@/utils/format';
 import type { RequestVM } from '@/services/requestView';
 import { ArrowUpRight, Hand, Undo2 } from 'lucide-react';
 
@@ -100,8 +101,9 @@ export function AgentRequestPeek({ summary, open, onClose, onChanged }: AgentReq
             <div className="grid gap-2">
               {r.passengers.map((p) => (
                 <div key={p.id} className="flex items-center justify-between p-3 bg-surface rounded-lg border border-line">
-                  <div className="font-medium text-ink text-sm">
+                  <div className="font-medium text-ink text-sm flex items-center gap-2 flex-wrap">
                     {p.fullName} <span className="text-xs text-ink-3 font-normal">· {p.nationality}</span>
+                    <MinorBadge dateOfBirth={p.dateOfBirth} />
                   </div>
                   <div className="text-xs font-mono text-ink-3">{p.passportNumber}</div>
                 </div>
@@ -123,7 +125,10 @@ export function AgentRequestPeek({ summary, open, onClose, onChanged }: AgentReq
                     <div className="text-sm font-medium text-ink">
                       {o.airline} <span className="text-[11px] text-ink-3 ml-1">{o.label}</span>
                     </div>
-                    <div className="text-xs text-ink-3 mt-0.5">Departs {fmtDepartTime(o.departureTime)}</div>
+                    <div className="text-xs text-ink-3 mt-0.5">
+                      Departs {fmtDepartTime(o.departureTime)}
+                      {fmtOptionMeta(o) ? ` · ${fmtOptionMeta(o)}` : ''}
+                    </div>
                   </div>
                   <div className="text-sm font-semibold text-ink">{fmtNaira(o.price)}</div>
                 </div>

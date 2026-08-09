@@ -6,10 +6,12 @@ import { Formik, Form, type FormikHelpers } from 'formik';
 import { useRequestDetail } from '@/hooks/useRequestsLive';
 import { useAuthStore } from '@/store/useAuthStore';
 import { StatusBadge, ProgressSteps, Timeline, Modal, EmptyState, Loader } from '@/components/ui';
+import { MinorBadge } from '@/components/MinorBadge';
 import { OTHER_AIRLINE } from '@/lib/constants';
 import { AIRLINE_SELECT_OPTIONS } from '@/lib/airlineOptions';
+import { CABIN_CLASS_OPTIONS, CABIN_CLASS_BY_LABEL } from '@/lib/cabinClassOptions';
 import { quoteOptionSchema } from '@/lib/validation/schemas';
-import { fmtNaira, fmtDate, fmtDateTime, fmtDepartTime, initials } from '@/utils/format';
+import { fmtNaira, fmtDate, fmtDateTime, fmtDepartTime, fmtOptionMeta, initials } from '@/utils/format';
 import { routeText } from '@/utils/request.utils';
 import type { HistoryEntry } from '@/interface';
 import type { RequestVM } from '@/services/requestView';
@@ -17,16 +19,23 @@ import { TextField, DateTimeField, ComboboxField } from '@/components/form';
 import {
   HelpCircle, Send, Lock, Ticket, ChevronLeft, Plane, Undo2,
   Plus, ShieldCheck, CheckCircle2, FileText, Paperclip, X, RefreshCw, Hand,
-  Tag, Banknote, Info,
+  Tag, Banknote, Info, Hash, Armchair, Repeat, Luggage, KeyRound,
 } from 'lucide-react';
 
-/** Price stays a string in the form; yup casts it on validate, we cast on submit. */
+/** Price/stops stay strings in the form; yup casts them on validate, we cast on submit. */
 interface QuoteDraftValues {
   airline: string;
   /** Free-text airline, used when `airline` is the "Other" sentinel. */
   airlineOther: string;
+  flightNumber: string;
   label: string;
   departureTime: string;
+  arrivalTime: string;
+  /** Combobox display label (e.g. "Economy") — resolved to the API's cabin-class enum on submit. */
+  cabinClass: string;
+  stops: string;
+  baggageAllowance: string;
+  bookingReference: string;
   price: string;
   details: string;
 }
@@ -34,8 +43,14 @@ interface QuoteDraftValues {
 const blankDraft = (): QuoteDraftValues => ({
   airline: AIRLINE_SELECT_OPTIONS[0]?.value ?? '',
   airlineOther: '',
+  flightNumber: '',
   label: '',
   departureTime: '',
+  arrivalTime: '',
+  cabinClass: CABIN_CLASS_OPTIONS[0]?.value ?? '',
+  stops: '0',
+  baggageAllowance: '',
+  bookingReference: '',
   price: '',
   details: '',
 });
@@ -71,13 +86,21 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
   async function commitOption(values: QuoteDraftValues, helpers: FormikHelpers<QuoteDraftValues>) {
     // "Other" resolves to the free-text airline typed in.
     const airline = values.airline === OTHER_AIRLINE ? values.airlineOther.trim() : values.airline;
+    // The combobox shows the friendly label ("Economy"); resolve back to the API enum.
+    const cabinClass = CABIN_CLASS_BY_LABEL[values.cabinClass] ?? 'ECONOMY';
     // The backend expects an ISO datetime; the picker gives local "YYYY-MM-DDTHH:mm".
     const ok = await addOption({
       airline,
+      flightNumber: values.flightNumber.trim(),
       label: values.label,
       details: values.details,
       price: Number(values.price),
       departureTime: new Date(values.departureTime).toISOString(),
+      arrivalTime: new Date(values.arrivalTime).toISOString(),
+      cabinClass,
+      stops: values.stops.trim() ? Number(values.stops) : undefined,
+      baggageAllowance: values.baggageAllowance.trim() || undefined,
+      bookingReference: values.bookingReference.trim() || undefined,
     });
     if (ok) {
       helpers.resetForm();
@@ -165,7 +188,11 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
                       <div className="w-10 h-10 rounded-lg bg-card border border-line flex items-center justify-center text-xs font-semibold text-ink-2">{initials(o.airline)}</div>
                       <div>
                         <div className="text-sm font-medium text-ink">{o.airline} <span className="text-[11px] text-ink-3 ml-1">{o.label}</span></div>
-                        <div className="text-xs text-ink-3 mt-0.5">Departs {fmtDepartTime(o.departureTime)}{o.details ? ` · ${o.details}` : ''}</div>
+                        <div className="text-xs text-ink-3 mt-0.5">
+                          Departs {fmtDepartTime(o.departureTime)}
+                          {fmtOptionMeta(o) ? ` · ${fmtOptionMeta(o)}` : ''}
+                          {o.details ? ` · ${o.details}` : ''}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -196,7 +223,10 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
                   <div key={o.id} className="flex items-center justify-between p-4 bg-surface rounded-xl border border-line">
                     <div>
                       <div className="text-sm font-medium text-ink">{o.airline} <span className="text-[11px] text-ink-3 ml-1">{o.label}</span></div>
-                      <div className="text-xs text-ink-3 mt-0.5">Departs {fmtDepartTime(o.departureTime)}</div>
+                      <div className="text-xs text-ink-3 mt-0.5">
+                        Departs {fmtDepartTime(o.departureTime)}
+                        {fmtOptionMeta(o) ? ` · ${fmtOptionMeta(o)}` : ''}
+                      </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-sm font-semibold text-ink">{fmtNaira(o.price)}</div>
@@ -228,7 +258,13 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
                   <div className="min-w-0">
                     <div className="text-[11px] uppercase font-semibold text-green-dark tracking-wide mb-0.5">Client&apos;s approved option</div>
                     <div className="text-sm font-medium text-ink truncate">{r.approvedOption.airline} <span className="text-[11px] text-ink-3 ml-1">{r.approvedOption.label}</span></div>
-                    <div className="text-xs text-ink-3 mt-0.5">Departs {fmtDepartTime(r.approvedOption.departureTime)}</div>
+                    <div className="text-xs text-ink-3 mt-0.5">
+                      Departs {fmtDepartTime(r.approvedOption.departureTime)}
+                      {fmtOptionMeta(r.approvedOption) ? ` · ${fmtOptionMeta(r.approvedOption)}` : ''}
+                    </div>
+                    {r.approvedOption.bookingReference && (
+                      <div className="text-[11px] text-ink-3 mt-0.5">Ref: {r.approvedOption.bookingReference}</div>
+                    )}
                   </div>
                   <div className="text-base font-bold text-green-dark shrink-0">{fmtNaira(r.approvedOption.price)}</div>
                 </div>
@@ -302,7 +338,10 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
                 <div className="grid gap-2">
                   {r.passengers.map((p) => (
                     <div key={p.id} className="flex items-center justify-between p-3 bg-surface rounded-lg border border-line">
-                      <div className="font-medium text-ink text-sm">{p.fullName} <span className="text-xs text-ink-3 font-normal">· {p.nationality}</span></div>
+                      <div className="font-medium text-ink text-sm flex items-center gap-2 flex-wrap">
+                        {p.fullName} <span className="text-xs text-ink-3 font-normal">· {p.nationality}</span>
+                        <MinorBadge dateOfBirth={p.dateOfBirth} />
+                      </div>
                       <div className="text-xs font-mono text-ink-3">{p.passportNumber}</div>
                     </div>
                   ))}
@@ -338,7 +377,7 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
                   strict
                   id="opt-airline"
                 />
-                <TextField name="label" label="Label" placeholder="e.g. Direct · 23kg" icon={Tag} id="opt-label" />
+                <TextField name="flightNumber" label="Flight number" placeholder="e.g. QR1234" icon={Hash} id="opt-flight-number" />
               </div>
               {values.airline === OTHER_AIRLINE && (
                 <div className="animate-fade-in">
@@ -346,8 +385,28 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
                 </div>
               )}
               <div className="grid sm:grid-cols-2 gap-3">
+                <TextField name="label" label="Label" placeholder="e.g. Direct · 23kg" icon={Tag} id="opt-label" />
+                <ComboboxField
+                  name="cabinClass"
+                  label="Cabin class"
+                  placeholder="Search cabin class"
+                  icon={Armchair}
+                  options={CABIN_CLASS_OPTIONS}
+                  strict
+                  id="opt-cabin-class"
+                />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
                 <DateTimeField name="departureTime" label="Departure date & time" id="opt-depart" />
+                <DateTimeField name="arrivalTime" label="Arrival date & time" min={values.departureTime || undefined} id="opt-arrive" />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
                 <TextField name="price" type="number" label="Price (₦)" placeholder="180000" icon={Banknote} inputMode="numeric" id="opt-price" />
+                <TextField name="stops" type="number" label="Stops" placeholder="0" icon={Repeat} inputMode="numeric" id="opt-stops" />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <TextField name="baggageAllowance" label="Baggage allowance (optional)" placeholder="e.g. 23kg checked" icon={Luggage} id="opt-baggage" />
+                <TextField name="bookingReference" label="Booking reference (optional)" placeholder="e.g. PNR code" icon={KeyRound} id="opt-booking-ref" />
               </div>
               <TextField name="details" label="Details (optional)" placeholder="e.g. Aisle seat, refundable" icon={Info} id="opt-details" />
             </Form>

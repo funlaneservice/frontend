@@ -1,4 +1,6 @@
 /** Currency, date and id helpers — ported from the original data.js. */
+import { CABIN_CLASS_LABEL_BY_VALUE } from '@/lib/cabinClassOptions';
+import type { QuoteOptionView } from '@/interface';
 
 export function fmtNaira(n: number): string {
   return '₦' + Number(n || 0).toLocaleString('en-NG');
@@ -43,6 +45,19 @@ export function fmtDepartTime(v?: string | null): string {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+/**
+ * Compact "QR1234 · Business · Direct" summary of a quote option's flight
+ * details, skipping any fields the backend didn't send (older options may
+ * predate these fields).
+ */
+export function fmtOptionMeta(o: Pick<QuoteOptionView, 'flightNumber' | 'cabinClass' | 'stops'>): string {
+  const parts: string[] = [];
+  if (o.flightNumber) parts.push(o.flightNumber);
+  if (o.cabinClass) parts.push(CABIN_CLASS_LABEL_BY_VALUE[o.cabinClass] ?? o.cabinClass);
+  if (typeof o.stops === 'number') parts.push(o.stops === 0 ? 'Direct' : `${o.stops} stop${o.stops === 1 ? '' : 's'}`);
+  return parts.join(' · ');
 }
 
 export function initials(name: string): string {

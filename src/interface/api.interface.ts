@@ -41,8 +41,14 @@ export interface QuoteOptionView {
   id: string;
   label: string;
   airline: string;
+  flightNumber?: string;
   price: number;
   departureTime: string;
+  arrivalTime?: string;
+  stops?: number;
+  cabinClass?: ApiBudgetTier;
+  baggageAllowance?: string;
+  bookingReference?: string;
   details?: string;
   /** True on the option the client approved. */
   isSelected?: boolean;
@@ -114,8 +120,14 @@ export interface PassengerInput {
 export interface AddQuoteOptionPayload {
   label: string;
   airline: string;
+  flightNumber: string;
   price: number;
   departureTime: string;
+  arrivalTime: string;
+  cabinClass: ApiBudgetTier;
+  stops?: number;
+  baggageAllowance?: string;
+  bookingReference?: string;
   details?: string;
 }
 

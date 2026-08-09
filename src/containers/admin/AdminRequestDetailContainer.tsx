@@ -6,12 +6,14 @@ import { Formik, Form, type FormikHelpers } from 'formik';
 import { useRequestDetail } from '@/hooks/useRequestsLive';
 import { useAgentDirectory } from '@/hooks/useAgentDirectory';
 import { StatusBadge, ProgressSteps, Timeline, EmptyState, Loader, Modal, Button, ConfirmDialog } from '@/components/ui';
+import { MinorBadge } from '@/components/MinorBadge';
 import { TextField, DateTimeField, ComboboxField } from '@/components/form';
 import { OTHER_AIRLINE } from '@/lib/constants';
 import { AIRLINE_SELECT_OPTIONS } from '@/lib/airlineOptions';
+import { CABIN_CLASS_OPTIONS, CABIN_CLASS_BY_LABEL } from '@/lib/cabinClassOptions';
 import { quoteOptionSchema } from '@/lib/validation/schemas';
 import { STATUS_META } from '@/services/requestView';
-import { fmtNaira, fmtDate, fmtDateTime, fmtDepartTime } from '@/utils/format';
+import { fmtNaira, fmtDate, fmtDateTime, fmtDepartTime, fmtOptionMeta } from '@/utils/format';
 import { routeText } from '@/utils/request.utils';
 import type { ApiRequestStatus, HistoryEntry, QuoteOptionView } from '@/interface';
 import type { RequestVM } from '@/services/requestView';
@@ -19,6 +21,7 @@ import {
   HelpCircle, ChevronLeft, Plane, MapPin, Repeat, Calendar, Undo2, PlaneTakeoff,
   Coins, RefreshCw, UserCog, Lightbulb, Plus, Send, X, Paperclip, FileText,
   CheckCircle2, Lock, Tag, Banknote, Info, Wrench, ShieldAlert, Ban, GitBranch,
+  Hash, Armchair, Luggage, KeyRound,
 } from 'lucide-react';
 import type { ElementType } from 'react';
 
@@ -34,13 +37,20 @@ function synthTimeline(r: RequestVM): HistoryEntry[] {
   return items;
 }
 
-/** Price stays a string in the form; yup casts it on validate, we cast on submit. */
+/** Price/stops stay strings in the form; yup casts them on validate, we cast on submit. */
 interface QuoteDraftValues {
   airline: string;
   /** Free-text airline, used when `airline` is the "Other" sentinel. */
   airlineOther: string;
+  flightNumber: string;
   label: string;
   departureTime: string;
+  arrivalTime: string;
+  /** Combobox display label (e.g. "Economy") — resolved to the API's cabin-class enum on submit. */
+  cabinClass: string;
+  stops: string;
+  baggageAllowance: string;
+  bookingReference: string;
   price: string;
   details: string;
 }
@@ -48,8 +58,14 @@ interface QuoteDraftValues {
 const blankDraft = (): QuoteDraftValues => ({
   airline: AIRLINE_SELECT_OPTIONS[0]?.value ?? '',
   airlineOther: '',
+  flightNumber: '',
   label: '',
   departureTime: '',
+  arrivalTime: '',
+  cabinClass: CABIN_CLASS_OPTIONS[0]?.value ?? '',
+  stops: '0',
+  baggageAllowance: '',
+  bookingReference: '',
   price: '',
   details: '',
 });
@@ -127,12 +143,20 @@ export function AdminRequestDetailContainer({ id }: { id: string }) {
   async function commitOption(values: QuoteDraftValues, helpers: FormikHelpers<QuoteDraftValues>) {
     // "Other" resolves to the free-text airline typed in.
     const airline = values.airline === OTHER_AIRLINE ? values.airlineOther.trim() : values.airline;
+    // The combobox shows the friendly label ("Economy"); resolve back to the API enum.
+    const cabinClass = CABIN_CLASS_BY_LABEL[values.cabinClass] ?? 'ECONOMY';
     const ok = await addOption({
       airline,
+      flightNumber: values.flightNumber.trim(),
       label: values.label,
       details: values.details,
       price: Number(values.price),
       departureTime: new Date(values.departureTime).toISOString(),
+      arrivalTime: new Date(values.arrivalTime).toISOString(),
+      cabinClass,
+      stops: values.stops.trim() ? Number(values.stops) : undefined,
+      baggageAllowance: values.baggageAllowance.trim() || undefined,
+      bookingReference: values.bookingReference.trim() || undefined,
     });
     if (ok) {
       helpers.resetForm();
@@ -221,7 +245,10 @@ export function AdminRequestDetailContainer({ id }: { id: string }) {
                     <div key={o.id} className="flex items-center justify-between gap-3 p-3.5 bg-surface rounded-xl border border-line">
                       <div className="min-w-0">
                         <div className="text-sm font-medium text-ink truncate">{o.airline} <span className="text-[11px] text-ink-3 ml-1">{o.label}</span></div>
-                        <div className="text-xs text-ink-3 mt-0.5">Departs {fmtDepartTime(o.departureTime)} · {fmtNaira(o.price)}</div>
+                        <div className="text-xs text-ink-3 mt-0.5">
+                          Departs {fmtDepartTime(o.departureTime)}
+                          {fmtOptionMeta(o) ? ` · ${fmtOptionMeta(o)}` : ''} · {fmtNaira(o.price)}
+                        </div>
                       </div>
                       <button onClick={() => removeOption(o.id)} disabled={busy} aria-label={`Remove ${o.airline} option`} className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-ink-3 hover:bg-red-soft hover:text-red transition-colors disabled:opacity-50">
                         <X aria-hidden="true" className="w-4 h-4" />
@@ -253,7 +280,10 @@ export function AdminRequestDetailContainer({ id }: { id: string }) {
                     <div key={o.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-surface rounded-xl border border-line">
                       <div className="min-w-0">
                         <div className="text-sm font-medium text-ink truncate">{o.airline} <span className="text-[11px] text-ink-3 ml-1">{o.label}</span></div>
-                        <div className="text-xs text-ink-3 mt-0.5">Departs {fmtDepartTime(o.departureTime)} · <span className="font-semibold text-brand">{fmtNaira(o.price)}</span></div>
+                        <div className="text-xs text-ink-3 mt-0.5">
+                          Departs {fmtDepartTime(o.departureTime)}
+                          {fmtOptionMeta(o) ? ` · ${fmtOptionMeta(o)}` : ''} · <span className="font-semibold text-brand">{fmtNaira(o.price)}</span>
+                        </div>
                       </div>
                       <Button color="brand" onClick={() => { setSelectedOpt(o); setApproveOpen(true); }} disabled={busy}>
                         Approve (as client)
@@ -394,7 +424,9 @@ export function AdminRequestDetailContainer({ id }: { id: string }) {
                     <div key={p.id} className="flex items-center gap-3 bg-surface rounded-lg p-3 border border-line">
                       <div className="w-7 h-7 rounded-full bg-card flex items-center justify-center font-semibold text-xs border border-line">{i + 1}</div>
                       <div>
-                        <div className="font-medium text-ink text-sm">{p.fullName}</div>
+                        <div className="font-medium text-ink text-sm flex items-center gap-2 flex-wrap">
+                          {p.fullName} <MinorBadge dateOfBirth={p.dateOfBirth} />
+                        </div>
                         <div className="text-xs text-ink-3">Passport: <span className="font-mono">{p.passportNumber}</span> · {p.nationality}</div>
                       </div>
                     </div>
@@ -434,9 +466,13 @@ export function AdminRequestDetailContainer({ id }: { id: string }) {
                       <div>
                         <div className="text-[11px] uppercase tracking-wide text-ink-3 mb-0.5">Departs</div>
                         <div className="font-semibold text-ink text-sm">{fmtDepartTime(o.departureTime)}</div>
+                        {fmtOptionMeta(o) && <div className="text-[11px] text-ink-3 mt-0.5">{fmtOptionMeta(o)}</div>}
                       </div>
                       <div className="text-lg font-bold text-brand">{fmtNaira(o.price)}</div>
                     </div>
+                    {o.bookingReference && (
+                      <div className="mt-1 text-[11px] text-ink-3">Ref: {o.bookingReference}</div>
+                    )}
                     {o.details && (
                       <div className="mt-3 pt-3 border-t border-line text-xs text-ink-3 flex items-center gap-1.5">
                         <Lightbulb aria-hidden="true" className="w-3.5 h-3.5 shrink-0" /> {o.details}
@@ -495,7 +531,7 @@ export function AdminRequestDetailContainer({ id }: { id: string }) {
                   strict
                   id="admin-opt-airline"
                 />
-                <TextField name="label" label="Label" placeholder="e.g. Direct · 23kg" icon={Tag} id="admin-opt-label" />
+                <TextField name="flightNumber" label="Flight number" placeholder="e.g. QR1234" icon={Hash} id="admin-opt-flight-number" />
               </div>
               {values.airline === OTHER_AIRLINE && (
                 <div className="animate-fade-in">
@@ -503,8 +539,28 @@ export function AdminRequestDetailContainer({ id }: { id: string }) {
                 </div>
               )}
               <div className="grid sm:grid-cols-2 gap-3">
+                <TextField name="label" label="Label" placeholder="e.g. Direct · 23kg" icon={Tag} id="admin-opt-label" />
+                <ComboboxField
+                  name="cabinClass"
+                  label="Cabin class"
+                  placeholder="Search cabin class"
+                  icon={Armchair}
+                  options={CABIN_CLASS_OPTIONS}
+                  strict
+                  id="admin-opt-cabin-class"
+                />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
                 <DateTimeField name="departureTime" label="Departure date & time" id="admin-opt-depart" />
+                <DateTimeField name="arrivalTime" label="Arrival date & time" min={values.departureTime || undefined} id="admin-opt-arrive" />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
                 <TextField name="price" type="number" label="Price (₦)" placeholder="180000" icon={Banknote} inputMode="numeric" id="admin-opt-price" />
+                <TextField name="stops" type="number" label="Stops" placeholder="0" icon={Repeat} inputMode="numeric" id="admin-opt-stops" />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <TextField name="baggageAllowance" label="Baggage allowance (optional)" placeholder="e.g. 23kg checked" icon={Luggage} id="admin-opt-baggage" />
+                <TextField name="bookingReference" label="Booking reference (optional)" placeholder="e.g. PNR code" icon={KeyRound} id="admin-opt-booking-ref" />
               </div>
               <TextField name="details" label="Details (optional)" placeholder="e.g. Aisle seat, refundable" icon={Info} id="admin-opt-details" />
             </Form>

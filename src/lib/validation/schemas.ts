@@ -1,4 +1,5 @@
 import * as yup from 'yup';
+import { calcAge } from '@/utils/age';
 
 /* Shared field rules -------------------------------------------------- */
 
@@ -116,7 +117,15 @@ export const passengerSchema = yup.object({
   fullName: yup.string().trim().required('Full name is required.'),
   passportNumber,
   nationality: yup.string().trim().required('Nationality is required.'),
-  dateOfBirth: yup.string().required('Date of birth is required.'),
+  dateOfBirth: yup
+    .string()
+    .required('Date of birth is required.')
+    .test('not-future', 'Date of birth cannot be in the future.', (v) => !v || new Date(v).getTime() <= Date.now())
+    .test('plausible-age', 'Enter a realistic date of birth.', (v) => {
+      if (!v) return true; // required() already reports empties
+      const age = calcAge(v);
+      return !Number.isNaN(age) && age >= 0 && age <= 120;
+    }),
   passportExpiry: yup.string().required('Passport expiry is required.'),
   file: yup
     .mixed<File>()
@@ -154,12 +163,30 @@ export const quoteOptionSchema = yup.object({
     then: (s) => s.required('Enter the airline name.'),
     otherwise: (s) => s.notRequired(),
   }),
+  flightNumber: yup.string().trim().required('Flight number is required.'),
   price: yup
     .number()
     .typeError('Enter a price.')
     .required('Enter a price.')
     .positive('Price must be greater than zero.'),
   departureTime: yup.string().trim().required('Departure time is required.'),
+  arrivalTime: yup
+    .string()
+    .trim()
+    .required('Arrival time is required.')
+    .test('after-departure', 'Arrival must be after departure.', function (value) {
+      const departureTime = this.parent.departureTime as string | undefined;
+      if (!value || !departureTime) return true; // let the required checks report empties
+      return new Date(value).getTime() > new Date(departureTime).getTime();
+    }),
+  cabinClass: yup.string().trim().required('Select a cabin class.'),
+  stops: yup
+    .number()
+    .typeError('Enter the number of stops.')
+    .min(0, "Stops can't be negative.")
+    .notRequired(),
+  baggageAllowance: yup.string().trim().notRequired(),
+  bookingReference: yup.string().trim().notRequired(),
 });
 
 /* Wallet -------------------------------------------------------------- */

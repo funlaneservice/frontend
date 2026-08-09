@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { useRequestDetail } from '@/hooks/useRequestsLive';
 import { useWallet } from '@/hooks/useWallet';
 import { StatusBadge, ProgressSteps, Timeline, Modal, EmptyState, Loader, Button, ConfirmDialog } from '@/components/ui';
-import { fmtNaira, fmtDate, fmtDepartTime } from '@/utils/format';
+import { MinorBadge } from '@/components/MinorBadge';
+import { fmtNaira, fmtDate, fmtDepartTime, fmtOptionMeta } from '@/utils/format';
 import { routeText } from '@/utils/request.utils';
 import type { HistoryEntry, QuoteOptionView } from '@/interface';
 import {
@@ -114,15 +115,17 @@ export function ClientRequestDetailContainer({ id }: { id: string }) {
                       <div>
                         <div className="text-[11px] uppercase tracking-wide text-ink-3 mb-0.5">Departs</div>
                         <div className="font-semibold text-ink">{fmtDepartTime(o.departureTime)}</div>
+                        {fmtOptionMeta(o) && <div className="text-[11px] text-ink-3 mt-0.5">{fmtOptionMeta(o)}</div>}
                       </div>
                       <div className="flex items-center justify-between md:flex-col md:items-end gap-3 border-t md:border-t-0 border-line pt-3 md:pt-0">
                         <div className="text-lg font-bold text-brand">{fmtNaira(o.price)}</div>
                         <button onClick={() => { setSelectedOpt(o); setConfirmOpen(true); }} className="bg-brand text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-brand-dark transition-colors">Approve</button>
                       </div>
                     </div>
-                    {o.details && (
+                    {(o.baggageAllowance || o.details) && (
                       <div className="mt-3 pt-3 border-t border-line text-xs text-ink-3 flex items-center gap-1.5">
-                        <Lightbulb aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />{o.details}
+                        <Lightbulb aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />
+                        {[o.baggageAllowance ? `Baggage: ${o.baggageAllowance}` : null, o.details].filter(Boolean).join(' · ')}
                       </div>
                     )}
                   </div>
@@ -151,9 +154,13 @@ export function ClientRequestDetailContainer({ id }: { id: string }) {
                 <div>
                   <div className="text-[11px] uppercase tracking-wide text-ink-3 mb-0.5">Departs</div>
                   <div className="font-semibold text-ink">{fmtDepartTime(r.approvedOption.departureTime)}</div>
+                  {fmtOptionMeta(r.approvedOption) && <div className="text-[11px] text-ink-3 mt-0.5">{fmtOptionMeta(r.approvedOption)}</div>}
                 </div>
                 <div className="text-lg font-bold text-green-dark">{fmtNaira(r.approvedOption.price)}</div>
               </div>
+              {r.approvedOption.bookingReference && (
+                <div className="mt-2 text-xs text-ink-3">Booking reference: <span className="font-mono">{r.approvedOption.bookingReference}</span></div>
+              )}
               {r.approvedOption.details && (
                 <div className="mt-3 pt-3 border-t border-line text-xs text-ink-3 flex items-center gap-1.5">
                   <Lightbulb aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />{r.approvedOption.details}
@@ -199,7 +206,9 @@ export function ClientRequestDetailContainer({ id }: { id: string }) {
                     <div key={p.id} className="flex items-center gap-3 bg-surface rounded-lg p-3 border border-line">
                       <div className="w-7 h-7 rounded-full bg-card flex items-center justify-center font-semibold text-xs border border-line">{i + 1}</div>
                       <div>
-                        <div className="font-medium text-ink text-sm">{p.fullName}</div>
+                        <div className="font-medium text-ink text-sm flex items-center gap-2 flex-wrap">
+                          {p.fullName} <MinorBadge dateOfBirth={p.dateOfBirth} />
+                        </div>
                         <div className="text-xs text-ink-3">Passport: <span className="font-mono">{p.passportNumber}</span> · {p.nationality}</div>
                       </div>
                     </div>
