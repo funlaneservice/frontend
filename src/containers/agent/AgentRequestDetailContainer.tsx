@@ -405,8 +405,8 @@ export function AgentRequestDetailContainer({ id }: { id: string }) {
                 <TextField name="stops" type="number" label="Stops" placeholder="0" icon={Repeat} inputMode="numeric" id="opt-stops" />
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
-                <TextField name="baggageAllowance" label="Baggage allowance (optional)" placeholder="e.g. 23kg checked" icon={Luggage} id="opt-baggage" />
-                <TextField name="bookingReference" label="Booking reference (optional)" placeholder="e.g. PNR code" icon={KeyRound} id="opt-booking-ref" />
+                <TextField name="baggageAllowance" label="Baggage (optional)" placeholder="e.g. 23kg checked" icon={Luggage} id="opt-baggage" />
+                <TextField name="bookingReference" label="Booking ref. (optional)" placeholder="e.g. PNR code" icon={KeyRound} id="opt-booking-ref" />
               </div>
               <TextField name="details" label="Details (optional)" placeholder="e.g. Aisle seat, refundable" icon={Info} id="opt-details" />
             </Form>

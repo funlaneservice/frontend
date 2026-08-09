@@ -52,7 +52,8 @@ export function FloatingLabel({ htmlFor, hasIcon, error, always, children }: Flo
   return (
     <label
       htmlFor={htmlFor}
-      className={`pointer-events-none absolute -translate-y-1/2 whitespace-nowrap select-none transition-all duration-200 ${color} ${position}`}
+      title={typeof children === 'string' ? children : undefined}
+      className={`pointer-events-none absolute -translate-y-1/2 whitespace-nowrap truncate max-w-[calc(100%-2.25rem)] select-none transition-all duration-200 ${color} ${position}`}
     >
       {children}
     </label>
