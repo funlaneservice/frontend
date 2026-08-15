@@ -20,6 +20,12 @@ const PAGE_SIZES = [5, 10, 20, 50, 100];
 export function Pagination({ page, totalPages, onPageChange, total, unit = 'result', className = '', limit = 5, onLimitChange, }: PaginationProps) {
   if (totalPages === 0) return null;
 
+  // Guarantee the current page size always has a matching <option>, even if a
+  // caller initializes its state with a value outside the standard preset
+  // (e.g. 25) — otherwise the <select> silently falls back to displaying its
+  // first option while the table keeps loading the real (larger) page size.
+  const sizeOptions = PAGE_SIZES.includes(limit) ? PAGE_SIZES : [...PAGE_SIZES, limit].sort((a, b) => a - b);
+
   return (
     <div className={`flex items-center justify-between gap-3 ${className}`}>
       <div className="flex items-center gap-4">
@@ -36,7 +42,7 @@ export function Pagination({ page, totalPages, onPageChange, total, unit = 'resu
               onChange={(e) => onLimitChange(Number(e.target.value))}
               className="h-9 rounded-md border border-line bg-card px-2 text-sm focus:outline-none focus:border-sky-400"
             >
-              {PAGE_SIZES.map((size) => (
+              {sizeOptions.map((size) => (
                 <option key={size} value={size}>
                   {size}
                 </option>
